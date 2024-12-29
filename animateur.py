@@ -20,7 +20,7 @@ client = OpenAI(
 
 # Date du jour
 today = date.today()
-formatted_date = today.strftime("%d.%m.%Y")
+formatted_date = today.strftime("%d.%m.%y")
 
 # Fonction pour télécharger une chanson au hasard
 def chansonhasard(track="hasard", telechargement=True):
@@ -177,69 +177,76 @@ def main(script_filename):
     # Création de l'émission audio
     emission = AudioSegment.empty()
 
-    with open(script_filename, 'r') as f1:
-        for lineprep in f1:
-            command = lineprep.strip().split(";")
-            if command[0] == "PLAY_SONG":
-                chanson = chansonhasard(command[2].strip(), False)
+    # Lecture du script et remplacement de la date
+    with open(script_filename, 'r') as f:
+        script_content = f.read()
+        # Remplace toute date au format DD.MM.YY par la date du jour
+        script_content = re.sub(r'\d{2}\.\d{2}\.\d{2}', formatted_date, script_content)
+    
+    # Traitement du script modifié ligne par ligne
+    for lineprep in script_content.split('\n'):
+        command = lineprep.strip().split(";")
+        if command[0] == "PLAY_SONG":
+            chanson = chansonhasard(command[2].strip(), False)
+            if chanson:
+                print(f"Joue la chanson : {chanson['title']}")
+                chansons[command[1].strip()] = chanson 
+
+    # Traitement final du script
+    for line in script_content.split('\n'):
+        command = line.strip().split(";")
+        if command[0] == "START":
+            print("Début de l'émission")
+            print("En avant pour le jingle")
+            song2 = AudioSegment.from_file("jingle.mp3")
+            emission += song2
+
+        elif command[0] == "INSERT":
+            print("insert d'un fichier audio")
+            song2 = AudioSegment.from_file(command[1].strip())
+            emission += song2
+
+        elif command[0] == "PLAY_SONG":
+            song_id = command[1].strip()  # Récupérer directement l'ID de la chanson
+            chanson_info = chansons.get(song_id)  # Obtenir les détails de la chanson
+            if chanson_info:
+                chanson = chansonhasard(chanson_info["id"])  # Passer l'ID à la fonction
                 if chanson:
                     print(f"Joue la chanson : {chanson['title']}")
-                    chansons[command[1].strip()] = chanson 
-    with open(script_filename, 'r') as f:
-        for line in f:
-            command = line.strip().split(";")
-            if command[0] == "START":
-                print("Début de l'émission")
-                print("En avant pour le jingle")
-                song2 = AudioSegment.from_file("jingle.mp3")
-                emission += song2
-
-            elif command[0] == "INSERT":
-                print("insert d'un fichier audio")
-                song2 = AudioSegment.from_file(command[1].strip())
-                emission += song2
-
-            elif command[0] == "PLAY_SONG":
-                song_id = command[1].strip()  # Récupérer directement l'ID de la chanson
-                chanson_info = chansons.get(song_id)  # Obtenir les détails de la chanson
-                if chanson_info:
-                    chanson = chansonhasard(chanson_info["id"])  # Passer l'ID à la fonction
-                    if chanson:
-                        print(f"Joue la chanson : {chanson['title']}")
-                        chansons[song_id] = chanson  # Mise à jour de la chanson jouée
-                        song_segment = AudioSegment.from_file("song.mp3")
-                        emission += song_segment
-                else:
-                    print(f"Aucune chanson trouvée pour l'ID: {song_id}")
-            elif command[0] == "NEXT_PROMPT":
-                prompt = f"{command[1]}"
-                for cle, valeur in chansons.items():
-                    if cle in prompt:  # Vérifie si la clé existe dans le prompt
-                        # Créer une chaîne formatée avec les détails de la chanson
-                        details_chanson = f"{valeur['title']} par {valeur['artist']} de l'album {valeur['album']}."
-                        prompt = prompt.replace('[' + cle + ']', details_chanson, 1)
-                print(f"PROMPT: {prompt}")
-                animateur = animateur_radio(prompt)
-                print(f"REPONSE: {animateur}")
-                tts = generate_mp3_from_text(animateur)
-                emission += AudioSegment.from_mp3(tts)
-            elif command[0] == "ADD_PODCAST":
-                podcast_file = obtenir_podcasts(config.PODCAST_IDS[command[1].strip()], auth_params)
-                if podcast_file:
-                    podcast_segment = AudioSegment.from_file(podcast_file)
-                    emission += podcast_segment
-            elif command[0] == "INTERLOCUTEUR":
-                with open(command[1].strip(), 'r', encoding='utf-8') as fichier:
-                    contenu = fichier.read()
-                VOICEbackup = config.VOICE
-                config.VOICE = command[2].strip()
-                animateur = animateur_radio(contenu)
-                tts = generate_mp3_from_text(animateur)
-                emission += AudioSegment.from_mp3(tts)
-                config.VOICE = VOICEbackup
-                
-           
-        # Exportation du fichier final
+                    chansons[song_id] = chanson  # Mise à jour de la chanson jouée
+                    song_segment = AudioSegment.from_file("song.mp3")
+                    emission += song_segment
+            else:
+                print(f"Aucune chanson trouvée pour l'ID: {song_id}")
+        elif command[0] == "NEXT_PROMPT":
+            prompt = f"{command[1]}"
+            for cle, valeur in chansons.items():
+                if cle in prompt:  # Vérifie si la clé existe dans le prompt
+                    # Créer une chaîne formatée avec les détails de la chanson
+                    details_chanson = f"{valeur['title']} par {valeur['artist']} de l'album {valeur['album']}."
+                    prompt = prompt.replace('[' + cle + ']', details_chanson, 1)
+            print(f"PROMPT: {prompt}")
+            animateur = animateur_radio(prompt)
+            print(f"REPONSE: {animateur}")
+            tts = generate_mp3_from_text(animateur)
+            emission += AudioSegment.from_mp3(tts)
+        elif command[0] == "ADD_PODCAST":
+            podcast_file = obtenir_podcasts(config.PODCAST_IDS[command[1].strip()], auth_params)
+            if podcast_file:
+                podcast_segment = AudioSegment.from_file(podcast_file)
+                emission += podcast_segment
+        elif command[0] == "INTERLOCUTEUR":
+            with open(command[1].strip(), 'r', encoding='utf-8') as fichier:
+                contenu = fichier.read()
+            VOICEbackup = config.VOICE
+            config.VOICE = command[2].strip()
+            animateur = animateur_radio(contenu)
+            tts = generate_mp3_from_text(animateur)
+            emission += AudioSegment.from_mp3(tts)
+            config.VOICE = VOICEbackup
+            
+       
+    # Exportation du fichier final
     emission.export("emission.mp3", format="mp3")
     print("Émission exportée sous le nom 'emission.mp3'.")
 
