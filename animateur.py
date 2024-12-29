@@ -7,6 +7,8 @@ import re
 from datetime import date
 from openai import OpenAI
 from pydub import AudioSegment
+import asyncio
+import edge_tts
 import config
 import os
 
@@ -157,47 +159,13 @@ def animateur_radio(prompt):
 
 
 # Fonction pour générer un fichier MP3 à partir d'un texte
+async def _generate_mp3_from_text(text):
+    communicate = edge_tts.Communicate(text, config.VOICE, rate=config.RATE, pitch=config.PITCH)
+    await communicate.save("temp.mp3")
+    return "temp.mp3"
+
 def generate_mp3_from_text(text):
-    urlinf = f"{config.TTS_URL}call/predict"
-    data = {
-        "data": [
-            text,
-            config.VOICE,
-            config.RATE,
-            config.PITCH
-        ]
-    }
-    response = requests.post(urlinf, json=data)
-    if response.status_code == 200:
-        event_id = response.json()["event_id"]
-        url_result = f"{urlinf}/{event_id}"
-        response_result = requests.get(url_result, stream=True)
-        
-        if response_result.status_code == 200:
-            content = response_result.content.decode("utf-8")
-            lines = content.split("\n")
-            for line in lines:
-                pattern = r'"path":\s*"([^"]+)"'
-                match = re.search(pattern, line)
-                if match:
-                    path = match.group(1)
-                    break  # On récupère le premier chemin de fichier trouvé
-        else:
-            print(f"Erreur lors de la récupération du résultat : {response_result.status_code}")
-    else:
-        print(f"Erreur lors de la demande TTS : {response.status_code}")
-    
-    file_url = f"{config.TTS_URL}file={path}"
-    try:
-        with requests.get(file_url, stream=True) as r:
-            r.raise_for_status()  # Vérifie si la requête a réussi
-            with open("temp.mp3", "wb") as f:
-                for chunk in r.iter_content(chunk_size=4096):
-                    f.write(chunk)
-        return "temp.mp3"
-    except requests.RequestException as e:
-        print(f"Erreur lors de la récupération du fichier : {e}")
-        return None
+    return asyncio.run(_generate_mp3_from_text(text))
 
 
 def main(script_filename):
