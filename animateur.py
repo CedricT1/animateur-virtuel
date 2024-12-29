@@ -180,8 +180,8 @@ def main(script_filename):
     # Lecture du script et remplacement de la date
     with open(script_filename, 'r') as f:
         script_content = f.read()
-        # Remplace toute date au format DD.MM.YY par la date du jour
-        script_content = re.sub(r'\d{2}\.\d{2}\.\d{2}', formatted_date, script_content)
+        # Remplace la balise {DATE} par la date du jour
+        script_content = script_content.replace("{DATE}", formatted_date)
     
     # Traitement du script modifié ligne par ligne
     for lineprep in script_content.split('\n'):

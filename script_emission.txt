@@ -1,6 +1,6 @@
 # script_emission.txt
 START
-NEXT_PROMPT;Emission 1h de louange chez vous du 15.08.24, tu es Henri l'animateur 1h de louange chez vous l'émission hebdomadaire du dimanche matin. sur radio Pneuma. Annonce la première chanson qui est le nouveau EP du Gospel Band AI Courroux, Lueur de Grâce.
+NEXT_PROMPT;Emission 1h de louange chez vous du {DATE}, tu es Henri l'animateur 1h de louange chez vous l'émission hebdomadaire du dimanche matin. sur radio Pneuma. Annonce la première chanson qui est le nouveau EP du Gospel Band AI Courroux, Lueur de Grâce.
 INSERT;lueurdegrace.mp3
 PLAY_SONG; 1;tr-1172
 NEXT_PROMPT;annonce que nous venons d'écouter [1] Maintenant tu passes le micro à Denise qui va nous quelques annonces (tu ne les fais pas. ça sera à la prochaine inférence)
