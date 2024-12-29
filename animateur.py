@@ -21,15 +21,14 @@ client = OpenAI(
 )
 
 # Variables globales pour les moteurs TTS
-elevenlabs_module = None
+elevenlabs_client = None
 
 # Import et configuration d'Elevenlabs seulement si nécessaire
 if hasattr(config, 'TTS_ENGINE') and config.TTS_ENGINE.lower() == "elevenlabs":
     try:
         import elevenlabs
-        elevenlabs_module = elevenlabs
         if hasattr(config, 'ELEVENLABS_API_KEY'):
-            elevenlabs.api_key = config.ELEVENLABS_API_KEY
+            elevenlabs_client = elevenlabs.ElevenLabs(api_key=config.ELEVENLABS_API_KEY)
     except ImportError:
         print("ATTENTION: Module elevenlabs non trouvé. Edge TTS sera utilisé comme fallback.")
         config.TTS_ENGINE = "edge"
@@ -184,20 +183,25 @@ async def _generate_mp3_from_text_edge(text):
 def _generate_mp3_from_text_elevenlabs(text):
     """Génère un fichier MP3 en utilisant Elevenlabs."""
     try:
-        if elevenlabs_module is None:
-            print("Module elevenlabs non disponible, utilisation de Edge TTS comme fallback")
+        if elevenlabs_client is None:
+            print("Client elevenlabs non disponible, utilisation de Edge TTS comme fallback")
             return asyncio.run(_generate_mp3_from_text_edge(text))
         
         # Génération de l'audio avec la nouvelle syntaxe
-        audio = elevenlabs_module.generate(
+        audio_stream = elevenlabs_client.generate(
             text=text,
             voice=config.ELEVENLABS_VOICE_ID,
-            model="eleven_multilingual_v2"
+            model="eleven_multilingual_v2",
+            voice_settings={
+                "stability": getattr(config, 'ELEVENLABS_STABILITY', 0.5),
+                "similarity_boost": getattr(config, 'ELEVENLABS_CLARITY', 0.75)
+            }
         )
         
-        # Sauvegarde de l'audio
+        # Conversion du stream en bytes et sauvegarde
+        audio_bytes = b"".join(audio_stream)
         with open("temp.mp3", "wb") as f:
-            f.write(audio)
+            f.write(audio_bytes)
         return "temp.mp3"
     except Exception as e:
         print(f"Erreur lors de la génération avec Elevenlabs: {e}")
