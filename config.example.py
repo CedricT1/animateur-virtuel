@@ -1,17 +1,25 @@
 # Configuration TTS
+# Choix du moteur TTS ("edge" ou "elevenlabs")
+TTS_ENGINE = "edge"
+
+# Configuration Edge TTS
 # Voix disponibles pour le français :
 # - Microsoft Server Speech Text to Speech Voice (fr-FR, HenriNeural) - Homme
 # - Microsoft Server Speech Text to Speech Voice (fr-FR, DeniseNeural) - Femme
 # - Microsoft Server Speech Text to Speech Voice (fr-FR, EloiseNeural) - Femme
 # - Microsoft Server Speech Text to Speech Voice (fr-FR, VivienneMultilingualNeural) - Femme multilingue
 # - Microsoft Server Speech Text to Speech Voice (fr-FR, RemyMultilingualNeural) - Homme multilingue
-VOICE = "Microsoft Server Speech Text to Speech Voice (fr-FR, HenriNeural)"
+EDGE_VOICE = "Microsoft Server Speech Text to Speech Voice (fr-FR, HenriNeural)"
+EDGE_RATE = "+0%"
+EDGE_PITCH = "+0Hz"
 
-# Vitesse de la voix (exemples: "-50%", "+0%", "+50%")
-RATE = "+0%"
-
-# Hauteur de la voix (exemples: "-50Hz", "+0Hz", "+50Hz")
-PITCH = "+0Hz"
+# Configuration Elevenlabs
+ELEVENLABS_API_KEY = "votre_clé_api_elevenlabs"
+# ID de la voix Elevenlabs (exemple : "21m00Tcm4TlvDq8ikWAM")
+ELEVENLABS_VOICE_ID = "votre_voice_id"
+# Paramètres de la voix (optionnels)
+ELEVENLABS_STABILITY = 0.5
+ELEVENLABS_SIMILARITY = 0.75
 
 # Configuration OpenAI/Together
 TOGETHER_API_KEY = "votre_clé_api_together"

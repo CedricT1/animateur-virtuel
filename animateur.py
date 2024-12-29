@@ -13,12 +13,17 @@ import config
 import os
 import json
 import time
+from elevenlabs import generate, save, set_api_key
 
 # Configuration IA
 client = OpenAI(
     api_key=config.TOGETHER_API_KEY,
     base_url='https://api.together.xyz/v1',
 )
+
+# Configuration Elevenlabs si nécessaire
+if hasattr(config, 'ELEVENLABS_API_KEY'):
+    set_api_key(config.ELEVENLABS_API_KEY)
 
 # Date du jour
 today = date.today()
@@ -161,13 +166,36 @@ def animateur_radio(prompt):
 
 
 # Fonction pour générer un fichier MP3 à partir d'un texte
-async def _generate_mp3_from_text(text):
-    communicate = edge_tts.Communicate(text, config.VOICE, rate=config.RATE, pitch=config.PITCH)
+async def _generate_mp3_from_text_edge(text):
+    """Génère un fichier MP3 en utilisant Edge TTS."""
+    communicate = edge_tts.Communicate(text, config.EDGE_VOICE, rate=config.EDGE_RATE, pitch=config.EDGE_PITCH)
     await communicate.save("temp.mp3")
     return "temp.mp3"
 
+def _generate_mp3_from_text_elevenlabs(text):
+    """Génère un fichier MP3 en utilisant Elevenlabs."""
+    try:
+        audio = generate(
+            text=text,
+            voice=config.ELEVENLABS_VOICE_ID,
+            model="eleven_multilingual_v2",
+            stability=config.ELEVENLABS_STABILITY,
+            similarity_boost=config.ELEVENLABS_SIMILARITY
+        )
+        save(audio, "temp.mp3")
+        return "temp.mp3"
+    except Exception as e:
+        print(f"Erreur lors de la génération avec Elevenlabs: {e}")
+        return None
+
 def generate_mp3_from_text(text):
-    return asyncio.run(_generate_mp3_from_text(text))
+    """Fonction principale de génération TTS qui utilise le moteur configuré."""
+    if config.TTS_ENGINE.lower() == "edge":
+        return asyncio.run(_generate_mp3_from_text_edge(text))
+    elif config.TTS_ENGINE.lower() == "elevenlabs":
+        return _generate_mp3_from_text_elevenlabs(text)
+    else:
+        raise ValueError(f"Moteur TTS non supporté: {config.TTS_ENGINE}")
 
 
 def traiter_journal():
@@ -286,12 +314,21 @@ def main(script_filename):
         elif command[0] == "INTERLOCUTEUR":
             with open(command[1].strip(), 'r', encoding='utf-8') as fichier:
                 contenu = fichier.read()
-            VOICEbackup = config.VOICE
-            config.VOICE = command[2].strip()
-            animateur = animateur_radio(contenu)
-            tts = generate_mp3_from_text(animateur)
-            emission += AudioSegment.from_mp3(tts)
-            config.VOICE = VOICEbackup
+            if config.TTS_ENGINE.lower() == "edge":
+                VOICE_backup = config.EDGE_VOICE
+                config.EDGE_VOICE = command[2].strip()
+                animateur = animateur_radio(contenu)
+                tts = generate_mp3_from_text(animateur)
+                emission += AudioSegment.from_mp3(tts)
+                config.EDGE_VOICE = VOICE_backup
+            else:
+                # Pour Elevenlabs, on utilise directement la voix spécifiée
+                VOICE_backup = config.ELEVENLABS_VOICE_ID
+                config.ELEVENLABS_VOICE_ID = command[2].strip()
+                animateur = animateur_radio(contenu)
+                tts = generate_mp3_from_text(animateur)
+                emission += AudioSegment.from_mp3(tts)
+                config.ELEVENLABS_VOICE_ID = VOICE_backup
             
        
     # Exportation du fichier final
