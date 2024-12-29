@@ -17,9 +17,6 @@ EDGE_PITCH = "+0Hz"
 ELEVENLABS_API_KEY = "votre_clé_api_elevenlabs"
 # ID de la voix Elevenlabs (exemple : "21m00Tcm4TlvDq8ikWAM")
 ELEVENLABS_VOICE_ID = "votre_voice_id"
-# Paramètres de la voix (optionnels)
-ELEVENLABS_STABILITY = 0.5
-ELEVENLABS_SIMILARITY = 0.75
 
 # Configuration OpenAI/Together
 TOGETHER_API_KEY = "votre_clé_api_together"
