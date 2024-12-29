@@ -1,26 +1,22 @@
 # script_emission.txt
 START
-NEXT_PROMPT;Emission 1h de louange chez vous du {DATE}, tu es Henri l'animateur 1h de louange chez vous l'émission hebdomadaire du dimanche matin. sur radio Pneuma. Annonce la première chanson qui est le nouveau EP du Gospel Band AI Courroux, Lueur de Grâce.
-INSERT;lueurdegrace.mp3
-PLAY_SONG; 1;tr-1172
-NEXT_PROMPT;annonce que nous venons d'écouter [1] Maintenant tu passes le micro à Denise qui va nous quelques annonces (tu ne les fais pas. ça sera à la prochaine inférence)
-INTERLOCUTEUR; annonces1.txt;fr-FR-DeniseNeural - fr-FR (Female)
-NEXT_PROMPT; après la prochaine chanson nous écouterons Harold qui va nous annoncer la météo de cette semaine. Mais avant écoutons Yeshua interpreté par Emilie Charrette
-INSERT;yeshua.m4a
-ADD_PODCAST; meteo
+NEXT_PROMPT;Emission 1h de louange chez vous du {DATE}, tu es Henri l'animateur 1h de louange chez vous l'émission matinale que vous retrouvez tous les matins. sur radio Pneuma. Annonce la première chanson qui est [1].
+PLAY_SONG; 1;hasard
+NEXT_PROMPT;annonce que nous venons d'écouter [1] Maintenant tu passes le micro à Fabrice qui va nous présenter le journal.
+JOURNAL;
 PLAY_SONG; 3;hasard
-NEXT_PROMPT; Remercie Harold pour ses prévisions et annonce que nous venons d'écouter [3] après la prochaine chanson nous écouterons Fabrice qui nous fera un partage sur le verset du jour. Mais avant écoutons [4]
-PLAY_SONG;  4;tr-3477
+NEXT_PROMPT; Remercie Fabrice pour le journal, et annonce que nous venons d'écouter [3] après la prochaine chanson nous écouterons Fabrice qui nous fera un partage sur le verset du jour. Mais avant écoutons [4]
+PLAY_SONG;  4;hasard
 ADD_PODCAST;bible
-PLAY_SONG; 5;tr-10244
+PLAY_SONG; 5;hasard
 NEXT_PROMPT; Annonce que nous venons d'écouter [5] et maintenant [6] 
-PLAY_SONG; 6;tr-4188
+PLAY_SONG; 6;hasard
 PLAY_SONG; 7;hasard
-NEXT_PROMPT; Annonce que nous venons d'écouter [7] Maintenant tu passes le micro à Charline qui va nous faire reportage sur les 24h de louange du Réseau Evangélique Jura (tu ne les fais pas. ça sera à la prochaine inférence)
-INTERLOCUTEUR; reportage.txt;fr-BE-CharlineNeural - fr-BE (Female)
-NEXT_PROMPT; maintenant la chanson [8]
-PLAY_SONG; 8;tr-10287
+NEXT_PROMPT; Annonce que nous venons d'écouter [7] Maintenant nous allons écouter Patrice Moreno de Momentum qui va nous faire le starter du jour
+ADD_PODCAST;last
+NEXT_PROMPT; merci Patrice, ça fait du bien de ce faire booster de ci bon matin. Maintenant la chanson [8]
+PLAY_SONG; 8;hasard
 PLAY_SONG; 9;hasard
-NEXT_PROMPT; Annonce que nous venons d'écouter [9] nous sommes a la fin, annonce pas de célébration ce soir. On se quitte en musique avec [10] qui nous vient du Val de Travers
-PLAY_SONG; 10;tr-10308
+NEXT_PROMPT; Annonce que nous venons d'écouter [9] nous sommes a la fin, annonce pas de notre matinale, on se retrouve demain matin et on se quitte sur  [10] .
+PLAY_SONG; 10;hasard
 END
