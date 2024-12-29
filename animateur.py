@@ -13,7 +13,6 @@ import config
 import os
 import json
 import time
-from elevenlabs import generate, save, set_api_key
 
 # Configuration IA
 client = OpenAI(
@@ -21,9 +20,11 @@ client = OpenAI(
     base_url='https://api.together.xyz/v1',
 )
 
-# Configuration Elevenlabs si nécessaire
-if hasattr(config, 'ELEVENLABS_API_KEY'):
-    set_api_key(config.ELEVENLABS_API_KEY)
+# Import et configuration d'Elevenlabs seulement si nécessaire
+if hasattr(config, 'TTS_ENGINE') and config.TTS_ENGINE.lower() == "elevenlabs":
+    from elevenlabs import generate, save, set_api_key
+    if hasattr(config, 'ELEVENLABS_API_KEY'):
+        set_api_key(config.ELEVENLABS_API_KEY)
 
 # Date du jour
 today = date.today()
@@ -175,6 +176,12 @@ async def _generate_mp3_from_text_edge(text):
 def _generate_mp3_from_text_elevenlabs(text):
     """Génère un fichier MP3 en utilisant Elevenlabs."""
     try:
+        # Import elevenlabs ici si ce n'est pas déjà fait
+        if not 'elevenlabs' in globals():
+            from elevenlabs import generate, save
+            if hasattr(config, 'ELEVENLABS_API_KEY'):
+                set_api_key(config.ELEVENLABS_API_KEY)
+        
         audio = generate(
             text=text,
             voice=config.ELEVENLABS_VOICE_ID,
