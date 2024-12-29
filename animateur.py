@@ -22,9 +22,9 @@ client = OpenAI(
 
 # Import et configuration d'Elevenlabs seulement si nécessaire
 if hasattr(config, 'TTS_ENGINE') and config.TTS_ENGINE.lower() == "elevenlabs":
-    from elevenlabs import Voice, VoiceSettings, generate, api
+    from elevenlabs import Client, VoiceSettings
     if hasattr(config, 'ELEVENLABS_API_KEY'):
-        api.set_api_key(config.ELEVENLABS_API_KEY)
+        elevenlabs_client = Client(api_key=config.ELEVENLABS_API_KEY)
 
 # Date du jour
 today = date.today()
@@ -178,21 +178,19 @@ def _generate_mp3_from_text_elevenlabs(text):
     try:
         # Import elevenlabs ici si ce n'est pas déjà fait
         if not 'elevenlabs' in globals():
-            from elevenlabs import Voice, VoiceSettings, generate, api
+            from elevenlabs import Client, VoiceSettings
             if hasattr(config, 'ELEVENLABS_API_KEY'):
-                api.set_api_key(config.ELEVENLABS_API_KEY)
+                elevenlabs_client = Client(api_key=config.ELEVENLABS_API_KEY)
         
         voice_settings = VoiceSettings(
             stability=config.ELEVENLABS_STABILITY,
             similarity_boost=config.ELEVENLABS_SIMILARITY
         )
         
-        audio = generate(
+        audio = elevenlabs_client.generate(
             text=text,
-            voice=Voice(
-                voice_id=config.ELEVENLABS_VOICE_ID,
-                settings=voice_settings
-            ),
+            voice_id=config.ELEVENLABS_VOICE_ID,
+            voice_settings=voice_settings,
             model="eleven_multilingual_v2"
         )
         
