@@ -20,11 +20,19 @@ client = OpenAI(
     base_url='https://api.together.xyz/v1',
 )
 
+# Variables globales pour les moteurs TTS
+elevenlabs_module = None
+
 # Import et configuration d'Elevenlabs seulement si nécessaire
 if hasattr(config, 'TTS_ENGINE') and config.TTS_ENGINE.lower() == "elevenlabs":
-    import elevenlabs
-    if hasattr(config, 'ELEVENLABS_API_KEY'):
-        elevenlabs.api_key = config.ELEVENLABS_API_KEY
+    try:
+        import elevenlabs
+        elevenlabs_module = elevenlabs
+        if hasattr(config, 'ELEVENLABS_API_KEY'):
+            elevenlabs.api_key = config.ELEVENLABS_API_KEY
+    except ImportError:
+        print("ATTENTION: Module elevenlabs non trouvé. Edge TTS sera utilisé comme fallback.")
+        config.TTS_ENGINE = "edge"
 
 # Date du jour
 today = date.today()
@@ -176,13 +184,11 @@ async def _generate_mp3_from_text_edge(text):
 def _generate_mp3_from_text_elevenlabs(text):
     """Génère un fichier MP3 en utilisant Elevenlabs."""
     try:
-        # Import elevenlabs ici si ce n'est pas déjà fait
-        if not 'elevenlabs' in globals():
-            import elevenlabs
-            if hasattr(config, 'ELEVENLABS_API_KEY'):
-                elevenlabs.api_key = config.ELEVENLABS_API_KEY
+        if elevenlabs_module is None:
+            print("Module elevenlabs non disponible, utilisation de Edge TTS comme fallback")
+            return asyncio.run(_generate_mp3_from_text_edge(text))
         
-        audio = elevenlabs.generate(
+        audio = elevenlabs_module.generate(
             text=text,
             voice=config.ELEVENLABS_VOICE_ID,
             model="eleven_multilingual_v2"
@@ -193,16 +199,27 @@ def _generate_mp3_from_text_elevenlabs(text):
         return "temp.mp3"
     except Exception as e:
         print(f"Erreur lors de la génération avec Elevenlabs: {e}")
-        return None
+        print("Utilisation de Edge TTS comme fallback")
+        return asyncio.run(_generate_mp3_from_text_edge(text))
 
 def generate_mp3_from_text(text):
     """Fonction principale de génération TTS qui utilise le moteur configuré."""
-    if config.TTS_ENGINE.lower() == "edge":
+    try:
+        if config.TTS_ENGINE.lower() == "edge":
+            return asyncio.run(_generate_mp3_from_text_edge(text))
+        elif config.TTS_ENGINE.lower() == "elevenlabs":
+            result = _generate_mp3_from_text_elevenlabs(text)
+            if result is None:
+                print("Échec de la génération avec Elevenlabs, utilisation de Edge TTS comme fallback")
+                return asyncio.run(_generate_mp3_from_text_edge(text))
+            return result
+        else:
+            print(f"Moteur TTS non supporté: {config.TTS_ENGINE}, utilisation de Edge TTS comme fallback")
+            return asyncio.run(_generate_mp3_from_text_edge(text))
+    except Exception as e:
+        print(f"Erreur lors de la génération TTS: {e}")
+        print("Utilisation de Edge TTS comme fallback")
         return asyncio.run(_generate_mp3_from_text_edge(text))
-    elif config.TTS_ENGINE.lower() == "elevenlabs":
-        return _generate_mp3_from_text_elevenlabs(text)
-    else:
-        raise ValueError(f"Moteur TTS non supporté: {config.TTS_ENGINE}")
 
 
 def traiter_journal():
