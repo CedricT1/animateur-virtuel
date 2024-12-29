@@ -11,6 +11,8 @@ import asyncio
 import edge_tts
 import config
 import os
+import json
+import time
 
 # Configuration IA
 client = OpenAI(
@@ -168,6 +170,38 @@ def generate_mp3_from_text(text):
     return asyncio.run(_generate_mp3_from_text(text))
 
 
+def traiter_journal():
+    """Génère et récupère le bulletin d'informations."""
+    print("Génération du bulletin d'informations en cours...")
+    
+    # Envoi de la requête pour générer le bulletin
+    try:
+        response = requests.post("http://192.168.2.196:5000/api/generate_bulletin")
+        data = response.json()
+        
+        if not data.get("success"):
+            print(f"Erreur lors de la génération du bulletin: {data.get('error')}")
+            print(f"Détails: {data.get('details')}")
+            return None
+            
+        # Récupération du fichier audio
+        audio_url = data["bulletin"]["audio_url"]
+        print(f"Téléchargement du bulletin depuis {audio_url}")
+        
+        # Téléchargement du fichier audio
+        audio_response = requests.get(audio_url)
+        if audio_response.status_code == 200:
+            with open("bulletin.mp3", "wb") as f:
+                f.write(audio_response.content)
+            return "bulletin.mp3"
+        else:
+            print(f"Erreur lors du téléchargement du bulletin: {audio_response.status_code}")
+            return None
+            
+    except Exception as e:
+        print(f"Erreur lors du traitement du bulletin: {e}")
+        return None
+
 def main(script_filename):
     # Authentification pour la partie podcast
     auth_params = {"u": config.USERNAME, "p": config.PASSWORD, "c": "myapp", "v": "1.16.0", "f": "json"}
@@ -200,6 +234,20 @@ def main(script_filename):
             print("En avant pour le jingle")
             song2 = AudioSegment.from_file("jingle.mp3")
             emission += song2
+
+        elif command[0] == "JOURNAL":
+            print("Génération et insertion du journal...")
+            bulletin_file = traiter_journal()
+            if bulletin_file:
+                bulletin_segment = AudioSegment.from_file(bulletin_file)
+                emission += bulletin_segment
+                # Nettoyage du fichier temporaire
+                try:
+                    os.remove(bulletin_file)
+                except Exception as e:
+                    print(f"Erreur lors de la suppression du bulletin: {e}")
+            else:
+                print("Impossible d'insérer le bulletin, on continue sans...")
 
         elif command[0] == "INSERT":
             print("insert d'un fichier audio")
@@ -253,7 +301,7 @@ def main(script_filename):
 
 # Fonction pour nettoyer les fichiers temporaires
 def nettoyer_fichiers_temp():
-    fichiers_temp = ["temp.mp3", "song.mp3", "podcast.mp3"]
+    fichiers_temp = ["temp.mp3", "song.mp3", "podcast.mp3", "bulletin.mp3"]
     for fichier in fichiers_temp:
         try:
             if os.path.exists(fichier):
