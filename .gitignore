@@ -1,0 +1,20 @@
+# Fichiers Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+venv/
+
+# Fichiers de configuration sensibles
+config.py
+
+# Fichiers temporaires
+temp.mp3
+song.mp3
+podcast.mp3
+*.mp3
+*.m4a
+
+# Environnement virtuel
+venv/ 
