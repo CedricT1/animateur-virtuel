@@ -24,7 +24,7 @@ client = OpenAI(
 if hasattr(config, 'TTS_ENGINE') and config.TTS_ENGINE.lower() == "elevenlabs":
     import elevenlabs
     if hasattr(config, 'ELEVENLABS_API_KEY'):
-        elevenlabs.set_api_key(config.ELEVENLABS_API_KEY)
+        elevenlabs.api_key = config.ELEVENLABS_API_KEY
 
 # Date du jour
 today = date.today()
@@ -180,7 +180,7 @@ def _generate_mp3_from_text_elevenlabs(text):
         if not 'elevenlabs' in globals():
             import elevenlabs
             if hasattr(config, 'ELEVENLABS_API_KEY'):
-                elevenlabs.set_api_key(config.ELEVENLABS_API_KEY)
+                elevenlabs.api_key = config.ELEVENLABS_API_KEY
         
         audio = elevenlabs.generate(
             text=text,
@@ -188,7 +188,8 @@ def _generate_mp3_from_text_elevenlabs(text):
             model="eleven_multilingual_v2"
         )
         
-        elevenlabs.save(audio, "temp.mp3")
+        with open("temp.mp3", "wb") as f:
+            f.write(audio)
         return "temp.mp3"
     except Exception as e:
         print(f"Erreur lors de la génération avec Elevenlabs: {e}")
