@@ -188,14 +188,21 @@ def _generate_mp3_from_text_elevenlabs(text):
             print("Module elevenlabs non disponible, utilisation de Edge TTS comme fallback")
             return asyncio.run(_generate_mp3_from_text_edge(text))
         
-        audio = elevenlabs_module.text_to_speech(
+        # Création de l'objet Voice
+        voice = elevenlabs_module.Voice(
+            voice_id=config.ELEVENLABS_VOICE_ID
+        )
+        
+        # Génération de l'audio
+        audio = voice.generate(
             text=text,
-            voice=config.ELEVENLABS_VOICE_ID,
             model="eleven_multilingual_v2"
         )
         
+        # Sauvegarde de l'audio
+        audio_bytes = audio.read()
         with open("temp.mp3", "wb") as f:
-            f.write(audio)
+            f.write(audio_bytes)
         return "temp.mp3"
     except Exception as e:
         print(f"Erreur lors de la génération avec Elevenlabs: {e}")
