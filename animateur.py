@@ -22,6 +22,7 @@ client = OpenAI(
 
 # Variables globales pour les moteurs TTS
 elevenlabs_client = None
+google_client = None
 
 # Import et configuration d'Elevenlabs seulement si nécessaire
 if hasattr(config, 'TTS_ENGINE') and config.TTS_ENGINE.lower() == "elevenlabs":
@@ -31,6 +32,23 @@ if hasattr(config, 'TTS_ENGINE') and config.TTS_ENGINE.lower() == "elevenlabs":
             elevenlabs_client = elevenlabs.ElevenLabs(api_key=config.ELEVENLABS_API_KEY)
     except ImportError:
         print("ATTENTION: Module elevenlabs non trouvé. Edge TTS sera utilisé comme fallback.")
+        config.TTS_ENGINE = "edge"
+
+# Import et configuration de Google Cloud TTS seulement si nécessaire
+if hasattr(config, 'TTS_ENGINE') and config.TTS_ENGINE.lower() == "google":
+    try:
+        from google.cloud import texttospeech
+        import os
+        
+        if hasattr(config, 'GOOGLE_CREDENTIALS_FILE'):
+            os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = config.GOOGLE_CREDENTIALS_FILE
+            google_client = texttospeech.TextToSpeechClient()
+    except ImportError:
+        print("ATTENTION: Module google-cloud-texttospeech non trouvé. Edge TTS sera utilisé comme fallback.")
+        config.TTS_ENGINE = "edge"
+    except Exception as e:
+        print(f"ATTENTION: Erreur lors de l'initialisation de Google Cloud TTS: {e}")
+        print("Edge TTS sera utilisé comme fallback.")
         config.TTS_ENGINE = "edge"
 
 # Date du jour
@@ -208,6 +226,46 @@ def _generate_mp3_from_text_elevenlabs(text):
         print("Utilisation de Edge TTS comme fallback")
         return asyncio.run(_generate_mp3_from_text_edge(text))
 
+def _generate_mp3_from_text_google(text):
+    """Génère un fichier MP3 en utilisant Google Cloud TTS."""
+    try:
+        if google_client is None:
+            print("Client Google Cloud TTS non disponible, utilisation de Edge TTS comme fallback")
+            return asyncio.run(_generate_mp3_from_text_edge(text))
+        
+        # Configuration de la synthèse
+        synthesis_input = texttospeech.SynthesisInput(text=text)
+        
+        # Configuration de la voix
+        voice = texttospeech.VoiceSelectionParams(
+            language_code=config.GOOGLE_LANGUAGE_CODE,
+            name=config.GOOGLE_VOICE
+        )
+        
+        # Configuration audio
+        audio_config = texttospeech.AudioConfig(
+            audio_encoding=texttospeech.AudioEncoding.MP3,
+            speaking_rate=config.GOOGLE_SPEAKING_RATE,
+            pitch=config.GOOGLE_PITCH
+        )
+        
+        # Génération de l'audio
+        response = google_client.synthesize_speech(
+            input=synthesis_input,
+            voice=voice,
+            audio_config=audio_config
+        )
+        
+        # Sauvegarde du fichier audio
+        with open("temp.mp3", "wb") as out:
+            out.write(response.audio_content)
+        
+        return "temp.mp3"
+    except Exception as e:
+        print(f"Erreur lors de la génération avec Google Cloud TTS: {e}")
+        print("Utilisation de Edge TTS comme fallback")
+        return asyncio.run(_generate_mp3_from_text_edge(text))
+
 def generate_mp3_from_text(text):
     """Fonction principale de génération TTS qui utilise le moteur configuré."""
     try:
@@ -217,6 +275,12 @@ def generate_mp3_from_text(text):
             result = _generate_mp3_from_text_elevenlabs(text)
             if result is None:
                 print("Échec de la génération avec Elevenlabs, utilisation de Edge TTS comme fallback")
+                return asyncio.run(_generate_mp3_from_text_edge(text))
+            return result
+        elif config.TTS_ENGINE.lower() == "google":
+            result = _generate_mp3_from_text_google(text)
+            if result is None:
+                print("Échec de la génération avec Google Cloud TTS, utilisation de Edge TTS comme fallback")
                 return asyncio.run(_generate_mp3_from_text_edge(text))
             return result
         else:
@@ -351,14 +415,20 @@ def main(script_filename):
                 tts = generate_mp3_from_text(animateur)
                 emission += AudioSegment.from_mp3(tts)
                 config.EDGE_VOICE = VOICE_backup
-            else:
-                # Pour Elevenlabs, on utilise directement la voix spécifiée
+            elif config.TTS_ENGINE.lower() == "elevenlabs":
                 VOICE_backup = config.ELEVENLABS_VOICE_ID
                 config.ELEVENLABS_VOICE_ID = command[2].strip()
                 animateur = animateur_radio(contenu)
                 tts = generate_mp3_from_text(animateur)
                 emission += AudioSegment.from_mp3(tts)
                 config.ELEVENLABS_VOICE_ID = VOICE_backup
+            else:  # Google Cloud TTS
+                VOICE_backup = config.GOOGLE_VOICE
+                config.GOOGLE_VOICE = command[2].strip()
+                animateur = animateur_radio(contenu)
+                tts = generate_mp3_from_text(animateur)
+                emission += AudioSegment.from_mp3(tts)
+                config.GOOGLE_VOICE = VOICE_backup
             
        
     # Exportation du fichier final

@@ -1,5 +1,5 @@
 # Configuration TTS
-# Choix du moteur TTS ("edge" ou "elevenlabs")
+# Choix du moteur TTS ("edge", "elevenlabs" ou "google")
 TTS_ENGINE = "edge"
 
 # Configuration Edge TTS
@@ -20,6 +20,21 @@ ELEVENLABS_VOICE_ID = "votre_voice_id"
 # Paramètres de la voix (optionnels)
 ELEVENLABS_STABILITY = 0.5  # Entre 0 et 1, défaut: 0.5
 ELEVENLABS_CLARITY = 0.75   # Entre 0 et 1, défaut: 0.75
+
+# Configuration Google Cloud TTS
+# Chemin vers le fichier de credentials JSON
+GOOGLE_CREDENTIALS_FILE = "path/to/your/google-credentials.json"
+# Voix disponibles pour le français :
+# - fr-FR-Neural2-A (Femme)
+# - fr-FR-Neural2-B (Homme)
+# - fr-FR-Neural2-C (Femme)
+# - fr-FR-Neural2-D (Homme)
+# - fr-FR-Neural2-E (Femme)
+GOOGLE_VOICE = "fr-FR-Neural2-B"  # Voix masculine par défaut
+GOOGLE_LANGUAGE_CODE = "fr-FR"
+# Paramètres de la voix (optionnels)
+GOOGLE_SPEAKING_RATE = 1.0  # Entre 0.25 et 4.0, défaut: 1.0
+GOOGLE_PITCH = 0.0  # Entre -20.0 et 20.0, défaut: 0.0
 
 # Configuration OpenAI/Together
 TOGETHER_API_KEY = "votre_clé_api_together"

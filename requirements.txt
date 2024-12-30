@@ -3,4 +3,5 @@ openai
 pydub
 edge-tts
 python-dotenv
-elevenlabs 
+elevenlabs
+google-cloud-texttospeech 
