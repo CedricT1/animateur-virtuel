@@ -1,20 +1,35 @@
-# Fichiers Python
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-.Python
-venv/
-
-# Fichiers de configuration sensibles
+# Configuration
 config.py
+*.json
+.env
 
-# Fichiers temporaires
+# Fichiers générés
+data/emissions/*
+*.mp3
 temp.mp3
 song.mp3
 podcast.mp3
-*.mp3
-*.m4a
+bulletin.mp3
+
+# Cache Python
+__pycache__/
+*.py[cod]
+*$py.class
 
 # Environnement virtuel
-venv/ 
+venv/
+env/
+ENV/
+
+# Logs
+*.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db 
