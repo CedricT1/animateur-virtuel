@@ -1,7 +1,7 @@
-requests
-openai
-pydub
-edge-tts
-python-dotenv
-elevenlabs
-google-cloud-texttospeech 
+requests>=2.31.0
+openai>=1.12.0
+pydub>=0.25.1
+edge-tts>=6.1.9
+elevenlabs>=0.2.27
+google-cloud-texttospeech>=2.14.1
+python-dateutil>=2.8.2 
