@@ -4,7 +4,7 @@ import requests
 import random
 import hashlib
 import re
-from datetime import date
+from datetime import date, datetime
 from openai import OpenAI
 from pydub import AudioSegment
 import asyncio
@@ -13,6 +13,11 @@ import config
 import os
 import json
 import time
+import sys
+sys.path.append('data/configurations')
+import config
+import os
+from datetime import datetime
 
 # Configuration IA
 client = OpenAI(
@@ -325,116 +330,142 @@ def traiter_journal():
         print(f"Erreur lors du traitement du bulletin: {e}")
         return None
 
+def generate_unique_filename():
+    """Génère un nom de fichier unique basé sur la date et l'heure"""
+    now = datetime.now()
+    return f"emission-{now.strftime('%d%m%y_%H%M')}.mp3"
+
 def main(script_filename):
     # Authentification pour la partie podcast
-    auth_params = {"u": config.USERNAME, "p": config.PASSWORD, "c": "myapp", "v": "1.16.0", "f": "json"}
-    # Définition du dictionnaire "chansons"
-    chansons = {}
-    
-    # Création de l'émission audio
-    emission = AudioSegment.empty()
+    params = {
+        "u": config.USERNAME,
+        "p": config.PASSWORD,
+        "v": "1.16.0",
+        "c": "subsonic",
+        "f": "json"
+    }
 
-    # Lecture du script et remplacement de la date
-    with open(script_filename, 'r') as f:
-        script_content = f.read()
-        # Remplace la balise {DATE} par la date du jour
-        script_content = script_content.replace("{DATE}", formatted_date)
-    
-    # Traitement du script modifié ligne par ligne
-    for lineprep in script_content.split('\n'):
-        command = lineprep.strip().split(";")
-        if command[0] == "PLAY_SONG":
-            chanson = chansonhasard(command[2].strip(), False)
-            if chanson:
-                print(f"Joue la chanson : {chanson['title']}")
-                chansons[command[1].strip()] = chanson 
+    # Création du dossier emissions s'il n'existe pas
+    os.makedirs("data/emissions", exist_ok=True)
 
-    # Traitement final du script
-    for line in script_content.split('\n'):
-        command = line.strip().split(";")
-        if command[0] == "START":
-            print("Début de l'émission")
-            print("En avant pour le jingle")
-            song2 = AudioSegment.from_file("jingle.mp3")
-            emission += song2
+    # Lecture du fichier script
+    try:
+        with open(f"data/configurations/{script_filename}", "r", encoding="utf-8") as file:
+            script_content = file.read()
+            # Remplace la balise {DATE} par la date du jour
+            script_content = script_content.replace("{DATE}", formatted_date)
+        
+        # Définition du dictionnaire "chansons"
+        chansons = {}
+        
+        # Création de l'émission audio
+        emission = AudioSegment.empty()
 
-        elif command[0] == "JOURNAL":
-            print("Génération et insertion du journal...")
-            bulletin_file = traiter_journal()
-            if bulletin_file:
-                bulletin_segment = AudioSegment.from_file(bulletin_file)
-                emission += bulletin_segment
-                # Nettoyage du fichier temporaire
-                try:
-                    os.remove(bulletin_file)
-                except Exception as e:
-                    print(f"Erreur lors de la suppression du bulletin: {e}")
-            else:
-                print("Impossible d'insérer le bulletin, on continue sans...")
-
-        elif command[0] == "INSERT":
-            print("insert d'un fichier audio")
-            song2 = AudioSegment.from_file(command[1].strip())
-            emission += song2
-
-        elif command[0] == "PLAY_SONG":
-            song_id = command[1].strip()  # Récupérer directement l'ID de la chanson
-            chanson_info = chansons.get(song_id)  # Obtenir les détails de la chanson
-            if chanson_info:
-                chanson = chansonhasard(chanson_info["id"])  # Passer l'ID à la fonction
+        # Traitement du script modifié ligne par ligne
+        for lineprep in script_content.split('\n'):
+            command = lineprep.strip().split(";")
+            if command[0] == "PLAY_SONG":
+                chanson = chansonhasard(command[2].strip(), False)
                 if chanson:
                     print(f"Joue la chanson : {chanson['title']}")
-                    chansons[song_id] = chanson  # Mise à jour de la chanson jouée
-                    song_segment = AudioSegment.from_file("song.mp3")
-                    emission += song_segment
-            else:
-                print(f"Aucune chanson trouvée pour l'ID: {song_id}")
-        elif command[0] == "NEXT_PROMPT":
-            prompt = f"{command[1]}"
-            for cle, valeur in chansons.items():
-                if cle in prompt:  # Vérifie si la clé existe dans le prompt
-                    # Créer une chaîne formatée avec les détails de la chanson
-                    details_chanson = f"{valeur['title']} par {valeur['artist']} de l'album {valeur['album']}."
-                    prompt = prompt.replace('[' + cle + ']', details_chanson, 1)
-            print(f"PROMPT: {prompt}")
-            animateur = animateur_radio(prompt)
-            print(f"REPONSE: {animateur}")
-            tts = generate_mp3_from_text(animateur)
-            emission += AudioSegment.from_mp3(tts)
-        elif command[0] == "ADD_PODCAST":
-            podcast_file = obtenir_podcasts(config.PODCAST_IDS[command[1].strip()], auth_params)
-            if podcast_file:
-                podcast_segment = AudioSegment.from_file(podcast_file)
-                emission += podcast_segment
-        elif command[0] == "INTERLOCUTEUR":
-            with open(command[1].strip(), 'r', encoding='utf-8') as fichier:
-                contenu = fichier.read()
-            if config.TTS_ENGINE.lower() == "edge":
-                VOICE_backup = config.EDGE_VOICE
-                config.EDGE_VOICE = command[2].strip()
-                animateur = animateur_radio(contenu)
+                    chansons[command[1].strip()] = chanson 
+
+        # Traitement final du script
+        for line in script_content.split('\n'):
+            command = line.strip().split(";")
+            if command[0] == "START":
+                print("Début de l'émission")
+                print("En avant pour le jingle")
+                song2 = AudioSegment.from_file("jingle.mp3")
+                emission += song2
+
+            elif command[0] == "JOURNAL":
+                print("Génération et insertion du journal...")
+                bulletin_file = traiter_journal()
+                if bulletin_file:
+                    bulletin_segment = AudioSegment.from_file(bulletin_file)
+                    emission += bulletin_segment
+                    # Nettoyage du fichier temporaire
+                    try:
+                        os.remove(bulletin_file)
+                    except Exception as e:
+                        print(f"Erreur lors de la suppression du bulletin: {e}")
+                else:
+                    print("Impossible d'insérer le bulletin, on continue sans...")
+
+            elif command[0] == "INSERT":
+                print("insert d'un fichier audio")
+                song2 = AudioSegment.from_file(command[1].strip())
+                emission += song2
+
+            elif command[0] == "PLAY_SONG":
+                song_id = command[1].strip()  # Récupérer directement l'ID de la chanson
+                chanson_info = chansons.get(song_id)  # Obtenir les détails de la chanson
+                if chanson_info:
+                    chanson = chansonhasard(chanson_info["id"])  # Passer l'ID à la fonction
+                    if chanson:
+                        print(f"Joue la chanson : {chanson['title']}")
+                        chansons[song_id] = chanson  # Mise à jour de la chanson jouée
+                        song_segment = AudioSegment.from_file("song.mp3")
+                        emission += song_segment
+                else:
+                    print(f"Aucune chanson trouvée pour l'ID: {song_id}")
+            elif command[0] == "NEXT_PROMPT":
+                prompt = f"{command[1]}"
+                for cle, valeur in chansons.items():
+                    if cle in prompt:  # Vérifie si la clé existe dans le prompt
+                        # Créer une chaîne formatée avec les détails de la chanson
+                        details_chanson = f"{valeur['title']} par {valeur['artist']} de l'album {valeur['album']}."
+                        prompt = prompt.replace('[' + cle + ']', details_chanson, 1)
+                print(f"PROMPT: {prompt}")
+                animateur = animateur_radio(prompt)
+                print(f"REPONSE: {animateur}")
                 tts = generate_mp3_from_text(animateur)
                 emission += AudioSegment.from_mp3(tts)
-                config.EDGE_VOICE = VOICE_backup
-            elif config.TTS_ENGINE.lower() == "elevenlabs":
-                VOICE_backup = config.ELEVENLABS_VOICE_ID
-                config.ELEVENLABS_VOICE_ID = command[2].strip()
-                animateur = animateur_radio(contenu)
-                tts = generate_mp3_from_text(animateur)
-                emission += AudioSegment.from_mp3(tts)
-                config.ELEVENLABS_VOICE_ID = VOICE_backup
-            else:  # Google Cloud TTS
-                VOICE_backup = config.GOOGLE_VOICE
-                config.GOOGLE_VOICE = command[2].strip()
-                animateur = animateur_radio(contenu)
-                tts = generate_mp3_from_text(animateur)
-                emission += AudioSegment.from_mp3(tts)
-                config.GOOGLE_VOICE = VOICE_backup
+            elif command[0] == "ADD_PODCAST":
+                podcast_file = obtenir_podcasts(config.PODCAST_IDS[command[1].strip()], auth_params)
+                if podcast_file:
+                    podcast_segment = AudioSegment.from_file(podcast_file)
+                    emission += podcast_segment
+            elif command[0] == "INTERLOCUTEUR":
+                with open(command[1].strip(), 'r', encoding='utf-8') as fichier:
+                    contenu = fichier.read()
+                if config.TTS_ENGINE.lower() == "edge":
+                    VOICE_backup = config.EDGE_VOICE
+                    config.EDGE_VOICE = command[2].strip()
+                    animateur = animateur_radio(contenu)
+                    tts = generate_mp3_from_text(animateur)
+                    emission += AudioSegment.from_mp3(tts)
+                    config.EDGE_VOICE = VOICE_backup
+                elif config.TTS_ENGINE.lower() == "elevenlabs":
+                    VOICE_backup = config.ELEVENLABS_VOICE_ID
+                    config.ELEVENLABS_VOICE_ID = command[2].strip()
+                    animateur = animateur_radio(contenu)
+                    tts = generate_mp3_from_text(animateur)
+                    emission += AudioSegment.from_mp3(tts)
+                    config.ELEVENLABS_VOICE_ID = VOICE_backup
+                else:  # Google Cloud TTS
+                    VOICE_backup = config.GOOGLE_VOICE
+                    config.GOOGLE_VOICE = command[2].strip()
+                    animateur = animateur_radio(contenu)
+                    tts = generate_mp3_from_text(animateur)
+                    emission += AudioSegment.from_mp3(tts)
+                    config.GOOGLE_VOICE = VOICE_backup
             
-       
-    # Exportation du fichier final
-    emission.export("emission.mp3", format="mp3")
-    print("Émission exportée sous le nom 'emission.mp3'.")
+        # Exportation du fichier final
+        emission.export("output.mp3", format="mp3")
+        print("Émission générée : output.mp3")
+
+        # À la fin de la fonction main, avant de retourner
+        output_filename = generate_unique_filename()
+        output_path = os.path.join("data/emissions", output_filename)
+        os.rename("output.mp3", output_path)
+        print(f"Émission générée : {output_path}")
+        return output_path
+
+    except Exception as e:
+        print(f"Erreur lors de la lecture du script: {e}")
+        return None
 
 
 # Fonction pour nettoyer les fichiers temporaires
