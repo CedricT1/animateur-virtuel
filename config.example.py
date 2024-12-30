@@ -2,6 +2,9 @@
 # Choix du moteur TTS ("edge", "elevenlabs" ou "google")
 TTS_ENGINE = "edge"
 
+# Configuration du modèle LLM
+LLM_MODEL = "meta-llama/Llama-3.3-70B-Instruct-Turbo"  # Modèle à utiliser pour la génération de texte
+
 # Configuration Edge TTS
 # Voix disponibles pour le français :
 # - Microsoft Server Speech Text to Speech Voice (fr-FR, HenriNeural) - Homme

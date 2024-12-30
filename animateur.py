@@ -175,12 +175,13 @@ historique_messages = [
 
 # Fonction pour simuler un dialogue avec un animateur de radio
 def animateur_radio(prompt):
+    """Fonction pour simuler un dialogue avec un animateur de radio."""
     # Ajoute le message utilisateur à l'historique
     historique_messages.append({"role": "user", "content": prompt})
 
     response = client.chat.completions.create(
         messages=historique_messages,
-        model="meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo"
+        model=config.LLM_MODEL
     )
 
     retour1 = response.choices[0].message.content
