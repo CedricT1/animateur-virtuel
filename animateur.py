@@ -421,7 +421,7 @@ def main(script_filename):
                 tts = generate_mp3_from_text(animateur)
                 emission += AudioSegment.from_mp3(tts)
             elif command[0] == "ADD_PODCAST":
-                podcast_file = obtenir_podcasts(config.PODCAST_IDS[command[1].strip()], auth_params)
+                podcast_file = obtenir_podcasts(config.PODCAST_IDS[command[1].strip()], params)
                 if podcast_file:
                     podcast_segment = AudioSegment.from_file(podcast_file)
                     emission += podcast_segment
