@@ -1,44 +1,78 @@
-# Créer le fichier README.md
-echo '# Animateur Radio Virtuel
+# Animateur Virtuel
 
-Un système automatisé pour créer des émissions de radio avec un animateur virtuel, spécialement conçu pour une radio chrétienne.
+Un script Python qui génère automatiquement des émissions de radio personnalisées avec un animateur virtuel, de la musique et des podcasts.
 
 ## Fonctionnalités
 
-- 🎵 Lecture de musique depuis un serveur Subsonic
-- 🎙️ Animation virtuelle via LLama AI
-- 🗣️ Synthèse vocale pour l"animateur
-- 📻 Intégration de podcasts
-- 🎧 Assemblage automatique d"émissions complètes
+- Génération de voix avec plusieurs moteurs TTS au choix (Edge TTS, ElevenLabs, Google Cloud TTS)
+- Lecture de musique depuis un serveur Subsonic
+- Intégration de podcasts
+- Génération de bulletins d'information
+- Support multi-voix pour les dialogues
+- Système de scripts pour personnaliser le contenu des émissions
+
+## Structure du Projet
+
+```
+.
+├── data/
+│   ├── emissions/      # Dossier contenant les émissions générées
+│   └── configurations/ # Fichiers de configuration et scripts d'émission
+├── animateur.py        # Script principal
+├── requirements.txt    # Dépendances Python
+└── README.md          # Documentation
+```
 
 ## Installation
 
-1. Clonez le dépôt
-2. Installez les dépendances : `pip install -r requirements.txt`
-3. Configurez votre `config.py`
-4. Lancez avec `python animateur.py`
+1. Clonez le dépôt :
+```bash
+git clone [URL_DU_REPO]
+cd animateur_virtuel
+```
+
+2. Installez les dépendances :
+```bash
+pip install -r requirements.txt
+```
+
+3. Copiez le fichier de configuration exemple :
+```bash
+cp data/configurations/config.example.py data/configurations/config.py
+```
+
+4. Modifiez le fichier `data/configurations/config.py` avec vos paramètres
 
 ## Configuration
 
-Créez un fichier `config.py` avec :
-- TOGETHER_API_KEY
-- USERNAME et PASSWORD (Subsonic)
-- BASE_URL
-- Autres paramètres TTS
+Le fichier `config.py` permet de configurer :
+- Le moteur TTS (Edge, ElevenLabs ou Google Cloud)
+- Les paramètres de voix pour chaque moteur
+- Les identifiants Subsonic pour la musique
+- Les identifiants des podcasts
+- Les clés API nécessaires
 
 ## Utilisation
 
-Créez un fichier `script_emission.txt` avec les commandes :
-- START
-- PLAY_SONG
-- NEXT_PROMPT
-- ADD_PODCAST
-- INTERLOCUTEUR
-- INSERT' > README.md
+1. Créez un script d'émission dans `data/configurations/` (voir les exemples existants)
+2. Lancez le script :
+```bash
+python animateur.py
+```
 
-# Créer le fichier requirements.txt
-echo 'requests>=2.31.0
-openai>=1.12.0
-pydub>=0.25.1
-python-dateutil>=2.8.2
-PyYAML>=6.0.1' > requirements.txt
+Les émissions générées seront sauvegardées dans le dossier `data/emissions/` avec un nom unique incluant la date et l'heure.
+
+## Format des Scripts d'Émission
+
+Les scripts d'émission supportent plusieurs commandes :
+- `START` : Début de l'émission
+- `PLAY_SONG` : Lecture d'une chanson
+- `NEXT_PROMPT` : Texte de l'animateur
+- `ADD_PODCAST` : Ajout d'un podcast
+- `INTERLOCUTEUR` : Changement de voix pour un dialogue
+- `JOURNAL` : Insertion d'un bulletin d'information
+- `INSERT` : Insertion d'un fichier audio
+
+## Licence
+
+[À définir]
