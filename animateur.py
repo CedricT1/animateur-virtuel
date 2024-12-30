@@ -1,5 +1,8 @@
 # animateur.py
 
+import sys
+sys.path.append('data/configurations')
+
 import requests
 import random
 import hashlib
@@ -13,11 +16,6 @@ import config
 import os
 import json
 import time
-import sys
-sys.path.append('data/configurations')
-import config
-import os
-from datetime import datetime
 
 # Configuration IA
 client = OpenAI(
