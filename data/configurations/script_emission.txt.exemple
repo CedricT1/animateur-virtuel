@@ -1,0 +1,42 @@
+# Exemple de script d'émission pour Radio Pneuma
+# Les commandes sont séparées par des points-virgules (;)
+# La date {DATE} sera automatiquement remplacée par la date du jour
+
+START
+NEXT_PROMPT;Bienvenue sur Radio Pneuma en ce {DATE}. Je suis Henri, votre animateur pour cette nouvelle émission de 1h de louange chez vous.
+
+# Première chanson avec ID spécifique
+PLAY_SONG;1;tr-1172
+NEXT_PROMPT;Nous venons d'écouter [1]. Un excellent choix pour commencer cette émission !
+
+# Insertion d'un bulletin météo
+NEXT_PROMPT;Écoutons maintenant la météo de la semaine avec notre ami Harold.
+ADD_PODCAST;meteo
+
+# Chanson aléatoire
+PLAY_SONG;2;hasard
+NEXT_PROMPT;C'était [2]. Maintenant, place aux annonces avec Denise.
+
+# Changement de voix pour les annonces
+INTERLOCUTEUR;annonces.txt;fr-FR-DeniseNeural - fr-FR (Female)
+
+# Insertion d'un fichier audio externe
+NEXT_PROMPT;Et maintenant, écoutons un chant spécial enregistré lors de notre dernière soirée de louange.
+INSERT;louange_live.mp3
+
+# Bulletin d'information
+NEXT_PROMPT;Il est temps d'écouter les informations du jour.
+JOURNAL
+
+# Plusieurs chansons enchaînées
+PLAY_SONG;3;tr-3477
+PLAY_SONG;4;tr-4188
+NEXT_PROMPT;Nous venons d'écouter [3] suivi de [4]. Maintenant, place à un reportage spécial avec Charline.
+
+# Reportage avec une voix différente
+INTERLOCUTEUR;reportage.txt;fr-BE-CharlineNeural - fr-BE (Female)
+
+# Fin de l'émission
+NEXT_PROMPT;Nous arrivons à la fin de notre émission. Merci de nous avoir écoutés. On se retrouve la semaine prochaine, même heure, même fréquence. En attendant, je vous laisse avec une dernière chanson.
+PLAY_SONG;5;hasard
+END 

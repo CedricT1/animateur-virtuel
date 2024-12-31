@@ -27,21 +27,29 @@ Un script Python qui génère automatiquement des émissions de radio personnali
 
 1. Clonez le dépôt :
 ```bash
-git clone [URL_DU_REPO]
+git clone https://github.com/CedricT1/animateur-virtuel.git
 cd animateur_virtuel
 ```
 
-2. Installez les dépendances :
+2. Créez et activez un environnement virtuel Python :
+```bash
+python3 -m venv venv
+source venv/bin/activate  # Sur Linux/MacOS
+# ou
+.\venv\Scripts\activate  # Sur Windows
+```
+
+3. Installez les dépendances :
 ```bash
 pip install -r requirements.txt
 ```
 
-3. Copiez le fichier de configuration exemple :
+4. Copiez le fichier de configuration exemple :
 ```bash
 cp data/configurations/config.example.py data/configurations/config.py
 ```
 
-4. Modifiez le fichier `data/configurations/config.py` avec vos paramètres
+5. Modifiez le fichier `data/configurations/config.py` avec vos paramètres
 
 ## Configuration
 
@@ -54,7 +62,7 @@ Le fichier `config.py` permet de configurer :
 
 ## Utilisation
 
-1. Créez un script d'émission dans `data/configurations/` (voir les exemples existants)
+1. Créez un fichier `script_emission.txt` dans `data/configurations/` (vous pouvez vous inspirer du fichier exemple `script_emission.txt.exemple`)
 2. Lancez le script :
 ```bash
 python animateur.py
@@ -64,15 +72,34 @@ Les émissions générées seront sauvegardées dans le dossier `data/emissions/
 
 ## Format des Scripts d'Émission
 
-Les scripts d'émission supportent plusieurs commandes :
-- `START` : Début de l'émission
-- `PLAY_SONG` : Lecture d'une chanson
-- `NEXT_PROMPT` : Texte de l'animateur
-- `ADD_PODCAST` : Ajout d'un podcast
-- `INTERLOCUTEUR` : Changement de voix pour un dialogue
-- `JOURNAL` : Insertion d'un bulletin d'information
-- `INSERT` : Insertion d'un fichier audio
+Les scripts d'émission doivent être placés dans le dossier `data/configurations/` avec l'extension `.txt`. Voici les commandes disponibles :
+
+- `START` : Marque le début de l'émission et joue le jingle d'introduction
+- `PLAY_SONG; ID; TRACK_ID` : Lecture d'une chanson
+  - `ID` : Identifiant unique pour référencer la chanson plus tard avec [ID]
+  - `TRACK_ID` : ID de la piste dans Subsonic ou "hasard" pour une chanson aléatoire
+- `NEXT_PROMPT; TEXTE` : Fait parler l'animateur
+  - Le texte peut inclure des références aux chansons avec [ID]
+  - Exemple : "Nous venons d'écouter [1]" remplacera [1] par les détails de la chanson
+- `ADD_PODCAST; TYPE` : Ajoute un podcast configuré dans config.py
+- `INTERLOCUTEUR; FICHIER; VOIX` : Change de voix pour un dialogue
+  - `FICHIER` : Chemin vers le fichier texte contenant le dialogue
+  - `VOIX` : Identifiant de la voix à utiliser (ex: "fr-FR-DeniseNeural")
+- `JOURNAL` : Insère le bulletin d'information
+- `INSERT; FICHIER` : Insère un fichier audio directement
+  - `FICHIER` : Chemin vers le fichier audio à insérer
+- `END` : Marque la fin de l'émission
+
+Exemple de script :
+```
+START
+NEXT_PROMPT;Bienvenue sur Radio Pneuma
+PLAY_SONG;1;hasard
+NEXT_PROMPT;Nous venons d'écouter [1]
+INTERLOCUTEUR;annonces.txt;fr-FR-DeniseNeural
+END
+```
 
 ## Licence
 
-[À définir]
+Ce projet est sous licence GNU General Public License v3.0 (GPL-3.0). Voir le fichier [LICENSE](LICENSE) pour plus de détails.
