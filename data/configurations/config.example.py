@@ -2,6 +2,11 @@
 # Choix du moteur TTS ("edge", "elevenlabs" ou "google")
 TTS_ENGINE = "edge"
 
+# Configuration de la date
+from datetime import date
+today = date.today()
+DATE_FORMAT = "%d.%m.%Y"  # Format de date à utiliser dans tout le projet
+FORMATTED_DATE = today.strftime(DATE_FORMAT)
 
 # Configuration Edge TTS
 # Voix disponibles pour le français :

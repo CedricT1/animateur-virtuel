@@ -7,7 +7,7 @@ import requests
 import random
 import hashlib
 import re
-from datetime import date, datetime
+from datetime import datetime
 from openai import OpenAI
 from pydub import AudioSegment
 import asyncio
@@ -338,7 +338,6 @@ def generate_unique_filename():
 
 def traiter_verset_du_jour():
     """Récupère le verset du jour depuis bible.com."""
-    global formatted_date  # Déclarer l'utilisation de la variable globale
     try:
         # Récupération du verset
         response = requests.get('https://www.bible.com/fr/verse-of-the-day')
@@ -366,15 +365,13 @@ def traiter_verset_du_jour():
 
         verset = response.choices[0].message.content
         print(f"Verset du jour : {verset}")
-        return verset, formatted_date
+        return verset, config.FORMATTED_DATE
         
     except Exception as e:
         print(f"Erreur lors de la récupération du verset du jour: {e}")
         return None, None
 
 def main(script_filename):
-    global formatted_date  # Déclarer l'utilisation de la variable globale
-    
     # Authentification pour la partie podcast
     params = {
         "u": config.USERNAME,
@@ -392,7 +389,7 @@ def main(script_filename):
         with open(f"data/configurations/{script_filename}", "r", encoding="utf-8") as file:
             script_content = file.read()
             # Remplace la balise {DATE} par la date du jour
-            script_content = script_content.replace("{DATE}", formatted_date)
+            script_content = script_content.replace("{DATE}", config.FORMATTED_DATE)
         
         # Définition du dictionnaire "chansons"
         chansons = {}
