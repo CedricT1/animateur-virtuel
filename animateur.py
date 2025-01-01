@@ -497,14 +497,11 @@ def main(script_filename):
                         f"Voici le verset du jour du {formatted_date} : {verset}\n"
                         f"Maintenant fais une méditation de doctrine évangélique sur ce verset."
                     )
-                    texte_meditation = animateur_radio(prompt_meditation)
+                    animateur = animateur_radio(prompt_meditation)
+                    print(f"REPONSE: {animateur}")
                     
                     # Génération du fichier audio
-                    audio_file = generate_mp3_from_text(texte_meditation)
-                    
-                    # Normalisation du volume
-                    audio = AudioSegment.from_file(audio_file, format="mp3")
-                    normalized_audio = audio.apply_gain(-20 - audio.dBFS)
+                    audio_file = generate_mp3_from_text(animateur)
                     
                     # Création du dossier versetjour s'il n'existe pas
                     os.makedirs("versetjour", exist_ok=True)
@@ -513,7 +510,10 @@ def main(script_filename):
                     now = datetime.now()
                     formatted_time = now.strftime("%Y%m%d%H%M")
                     output_path = f"versetjour/versetdu_{formatted_time}.mp3"
-                    normalized_audio.export(output_path, format="mp3", bitrate="192k")
+                    
+                    # Copie directe du fichier audio
+                    audio = AudioSegment.from_file(audio_file, format="mp3")
+                    audio.export(output_path, format="mp3", bitrate="192k")
                     
                     if os.path.exists(output_path):
                         verset_audio = AudioSegment.from_mp3(output_path)
@@ -523,8 +523,9 @@ def main(script_filename):
                 else:
                     print("Erreur: Impossible de récupérer le verset du jour")
         
-        # Exportation du fichier final
-        emission.export("output.mp3", format="mp3")
+        # Exportation du fichier final avec normalisation
+        normalized_emission = emission.apply_gain(-20 - emission.dBFS)
+        normalized_emission.export("output.mp3", format="mp3")
         print("Émission générée : output.mp3")
 
         # À la fin de la fonction main, avant de retourner
