@@ -364,30 +364,17 @@ def traiter_verset_du_jour():
 
         verset = response.choices[0].message.content
 
-        # Deuxième passe : génération de la méditation
+        # Deuxième passe : génération de la méditation en utilisant l'historique existant
         today = date.today()
         formatted_date = today.strftime("%d.%m.%Y")
         
         prompt_meditation = (
-            f"{verset}\n"
-            f"Ici dessus se trouve le verset du jour et sa Référence, ta tache est de préparer un texte qui sera lut par un text to speech, donc dans le retour tu ne rajoute rien d'autre que ce qu'il sera lut. Commence ton texte par saluer les auditeurs, d'annoncer le verset du jour du {formatted_date} tu lit le verset, ensuite tu fait une petite méditation de doctrine évangélique.\n"
+            f"Voici le verset du jour du {formatted_date} : {verset}\n"
+            f"Fais une méditation de doctrine évangélique sur ce verset. Ne resalue pas les auditeurs car tu es déjà en train d'animer l'émission.\n"
         )
 
-        response = client.chat.completions.create(
-            messages=[
-                {
-                    "role": "system",
-                    "content": "Tu es un animateur de radio chrétienne",
-                },
-                {
-                    "role": "user",
-                    "content": prompt_meditation,
-                }
-            ],
-            model="meta-llama/Meta-Llama-3.1-405B-Instruct-Turbo"
-        )
-
-        texte_meditation = response.choices[0].message.content
+        # Utiliser la fonction animateur_radio qui gère déjà l'historique
+        texte_meditation = animateur_radio(prompt_meditation)
 
         # Génération du fichier audio
         audio_file = generate_mp3_from_text(texte_meditation)
