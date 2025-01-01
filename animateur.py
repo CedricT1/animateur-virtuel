@@ -174,7 +174,8 @@ historique_messages = [
         - Sois clair et concis
         - Évite les tics de langage
         - Adapte ton ton à une radio chrétienne
-        - Reste naturel et chaleureux"""
+        - Reste naturel et chaleureux
+        - Pas de formatage du texte en markdown ou html, tu es lus par un tts"""
     }
 ]
 
@@ -360,10 +361,11 @@ def traiter_verset_du_jour():
                     "content": prompt_extraction,
                 }
             ],
-            model="mistralai/Mixtral-8x7B-Instruct-v0.1"
+            model=config.LLM_MODEL
         )
 
         verset = response.choices[0].message.content
+        print(f"Verset du jour : {verset}")
         return verset, formatted_date
         
     except Exception as e:
