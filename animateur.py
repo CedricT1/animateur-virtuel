@@ -373,6 +373,10 @@ def traiter_verset_du_jour():
         return None, None
 
 def main(script_filename):
+    # Date du jour pour le script
+    today = date.today()
+    formatted_date = today.strftime("%d.%m.%Y")
+
     # Authentification pour la partie podcast
     params = {
         "u": config.USERNAME,
