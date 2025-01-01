@@ -58,7 +58,7 @@ if hasattr(config, 'TTS_ENGINE') and config.TTS_ENGINE.lower() == "google":
 
 # Date du jour
 today = date.today()
-formatted_date = today.strftime("%d.%m.%y")
+formatted_date = today.strftime("%d.%m.%Y")
 
 # Fonction pour télécharger une chanson au hasard
 def chansonhasard(track="hasard", telechargement=True):
@@ -363,9 +363,6 @@ def traiter_verset_du_jour():
         )
 
         verset = response.choices[0].message.content
-        today = date.today()
-        formatted_date = today.strftime("%d.%m.%Y")
-        
         return verset, formatted_date
         
     except Exception as e:
@@ -373,10 +370,6 @@ def traiter_verset_du_jour():
         return None, None
 
 def main(script_filename):
-    # Date du jour pour le script
-    today = date.today()
-    formatted_date = today.strftime("%d.%m.%Y")
-
     # Authentification pour la partie podcast
     params = {
         "u": config.USERNAME,
