@@ -337,6 +337,7 @@ def generate_unique_filename():
 
 def traiter_verset_du_jour():
     """Récupère le verset du jour depuis bible.com."""
+    global formatted_date  # Déclarer l'utilisation de la variable globale
     try:
         # Récupération du verset
         response = requests.get('https://www.bible.com/fr/verse-of-the-day')
@@ -370,6 +371,8 @@ def traiter_verset_du_jour():
         return None, None
 
 def main(script_filename):
+    global formatted_date  # Déclarer l'utilisation de la variable globale
+    
     # Authentification pour la partie podcast
     params = {
         "u": config.USERNAME,
