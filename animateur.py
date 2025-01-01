@@ -166,18 +166,7 @@ def obtenir_podcasts(podcast_id, params):
 
 
 # Liste pour stocker l'historique des messages
-historique_messages = [
-    {
-        "role": "system",
-        "content": """Tu es un animateur de radio chrétienne, tu animes l'émission '1h de louange chez vous'.
-        Consignes:
-        - Sois clair et concis
-        - Évite les tics de langage
-        - Adapte ton ton à une radio chrétienne
-        - Reste naturel et chaleureux
-        - Pas de formatage du texte en markdown ou html, tu es lus par un tts"""
-    }
-]
+historique_messages = config.HISTORIQUE_MESSAGES.copy()  # Copie pour ne pas modifier la configuration d'origine
 
 # Fonction pour simuler un dialogue avec un animateur de radio
 def animateur_radio(prompt):

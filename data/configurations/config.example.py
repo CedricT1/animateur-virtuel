@@ -8,6 +8,20 @@ today = date.today()
 DATE_FORMAT = "%d.%m.%Y"  # Format de date à utiliser dans tout le projet
 FORMATTED_DATE = today.strftime(DATE_FORMAT)
 
+# Configuration de l'animateur
+HISTORIQUE_MESSAGES = [
+    {
+        "role": "system",
+        "content": """Tu es un animateur de radio chrétienne, tu animes l'émission '1h de louange chez vous'.
+        Consignes:
+        - Sois clair et concis
+        - Évite les tics de langage
+        - Adapte ton ton à une radio chrétienne
+        - Reste naturel et chaleureux
+        - Pas de formatage du texte en markdown ou html, tu es lus par un tts"""
+    }
+]
+
 # Configuration Edge TTS
 # Voix disponibles pour le français :
 # - Microsoft Server Speech Text to Speech Voice (fr-FR, HenriNeural) - Homme
