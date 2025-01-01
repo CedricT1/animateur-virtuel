@@ -497,7 +497,7 @@ def main(script_filename):
                 if verset:
                     prompt_meditation = (
                         f"Voici le verset du jour du {formatted_date} : {verset}\n"
-                        f"Maintenant fais une méditation de doctrine évangélique sur ce verset."
+                        f"Maintenant Lit le verset du jour en annonçant la référence. Ensuite fais une courte méditation de doctrine évangélique sur ce verset."
                     )
                     animateur = animateur_radio(prompt_meditation)
                     print(f"REPONSE: {animateur}")
