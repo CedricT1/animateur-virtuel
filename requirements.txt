@@ -4,4 +4,5 @@ pydub>=0.25.1
 edge-tts>=6.1.9
 elevenlabs>=0.2.27
 google-cloud-texttospeech>=2.14.1
-python-dateutil>=2.8.2 
+python-dateutil>=2.8.2
+beautifulsoup4>=4.12.3 
