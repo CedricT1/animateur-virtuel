@@ -16,6 +16,8 @@ import config
 import os
 import json
 import time
+from bs4 import BeautifulSoup
+from pathlib import Path
 
 # Configuration IA
 client = OpenAI(
@@ -333,6 +335,82 @@ def generate_unique_filename():
     now = datetime.now()
     return f"emission-{now.strftime('%d%m%y_%H%M')}.mp3"
 
+def traiter_verset_du_jour():
+    """Récupère le verset du jour depuis bible.com et génère un message audio."""
+    try:
+        # Récupération du verset
+        response = requests.get('https://www.bible.com/fr/verse-of-the-day')
+        html_content = response.text[:4000]
+
+        # Première passe : extraction du verset
+        prompt_extraction = (
+            f"{html_content}\n"
+            f"Ici dessus se trouve la page du verset du jour, je veux tu me l'extrait et que tu me retourne le verset suivis de sa référence, attention le verset sera lut par un speech to text donc tu ne commente rien du tout tu retourne uniquement le verset du jour et sa référence.\n"
+        )
+
+        response = client.chat.completions.create(
+            messages=[
+                {
+                    "role": "system",
+                    "content": "Tu es un pasteur évangélique",
+                },
+                {
+                    "role": "user",
+                    "content": prompt_extraction,
+                }
+            ],
+            model="mistralai/Mixtral-8x7B-Instruct-v0.1"
+        )
+
+        verset = response.choices[0].message.content
+
+        # Deuxième passe : génération de la méditation
+        today = date.today()
+        formatted_date = today.strftime("%d.%m.%Y")
+        
+        prompt_meditation = (
+            f"{verset}\n"
+            f"Ici dessus se trouve le verset du jour et sa Référence, ta tache est de préparer un texte qui sera lut par un text to speech, donc dans le retour tu ne rajoute rien d'autre que ce qu'il sera lut. Commence ton texte par saluer les auditeurs, d'annoncer le verset du jour du {formatted_date} tu lit le verset, ensuite tu fait une petite méditation de doctrine évangélique.\n"
+        )
+
+        response = client.chat.completions.create(
+            messages=[
+                {
+                    "role": "system",
+                    "content": "Tu es un animateur de radio chrétienne",
+                },
+                {
+                    "role": "user",
+                    "content": prompt_meditation,
+                }
+            ],
+            model="meta-llama/Meta-Llama-3.1-405B-Instruct-Turbo"
+        )
+
+        texte_meditation = response.choices[0].message.content
+
+        # Génération du fichier audio
+        audio_file = generate_mp3_from_text(texte_meditation)
+        
+        # Normalisation du volume
+        audio = AudioSegment.from_file(audio_file, format="mp3")
+        normalized_audio = audio.apply_gain(-20 - audio.dBFS)
+        
+        # Création du dossier versetjour s'il n'existe pas
+        os.makedirs("versetjour", exist_ok=True)
+        
+        # Sauvegarde avec un nom unique
+        now = datetime.now()
+        formatted_time = now.strftime("%Y%m%d%H%M")
+        output_path = f"versetjour/versetdu_{formatted_time}.mp3"
+        normalized_audio.export(output_path, format="mp3", bitrate="192k")
+        
+        return output_path
+        
+    except Exception as e:
+        print(f"Erreur lors du traitement du verset du jour: {e}")
+        return None
+
 def main(script_filename):
     # Authentification pour la partie podcast
     params = {
@@ -450,6 +528,15 @@ def main(script_filename):
                     emission += AudioSegment.from_mp3(tts)
                     config.GOOGLE_VOICE = VOICE_backup
             
+            elif command[0] == "VERSET_DU_JOUR":
+                print("Génération du verset du jour...")
+                verset_file = traiter_verset_du_jour()
+                if verset_file and os.path.exists(verset_file):
+                    verset_audio = AudioSegment.from_mp3(verset_file)
+                    emission = emission + verset_audio
+                else:
+                    print("Erreur: Impossible de générer le verset du jour")
+        
         # Exportation du fichier final
         emission.export("output.mp3", format="mp3")
         print("Émission générée : output.mp3")
