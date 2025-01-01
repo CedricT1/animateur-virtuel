@@ -336,13 +336,13 @@ def generate_unique_filename():
     return f"emission-{now.strftime('%d%m%y_%H%M')}.mp3"
 
 def traiter_verset_du_jour():
-    """Récupère le verset du jour depuis bible.com et génère un message audio."""
+    """Récupère le verset du jour depuis bible.com."""
     try:
         # Récupération du verset
         response = requests.get('https://www.bible.com/fr/verse-of-the-day')
         html_content = response.text[:4000]
 
-        # Première passe : extraction du verset
+        # Extraction du verset
         prompt_extraction = (
             f"{html_content}\n"
             f"Ici dessus se trouve la page du verset du jour, je veux tu me l'extrait et que tu me retourne le verset suivis de sa référence, attention le verset sera lut par un speech to text donc tu ne commente rien du tout tu retourne uniquement le verset du jour et sa référence.\n"
@@ -363,40 +363,14 @@ def traiter_verset_du_jour():
         )
 
         verset = response.choices[0].message.content
-
-        # Deuxième passe : génération de la méditation en utilisant l'historique existant
         today = date.today()
         formatted_date = today.strftime("%d.%m.%Y")
         
-        prompt_meditation = (
-            f"Voici le verset du jour du {formatted_date} : {verset}\n"
-            f"Fais une méditation de doctrine évangélique sur ce verset. Ne resalue pas les auditeurs car tu es déjà en train d'animer l'émission.\n"
-        )
-
-        # Utiliser la fonction animateur_radio qui gère déjà l'historique
-        texte_meditation = animateur_radio(prompt_meditation)
-
-        # Génération du fichier audio
-        audio_file = generate_mp3_from_text(texte_meditation)
-        
-        # Normalisation du volume
-        audio = AudioSegment.from_file(audio_file, format="mp3")
-        normalized_audio = audio.apply_gain(-20 - audio.dBFS)
-        
-        # Création du dossier versetjour s'il n'existe pas
-        os.makedirs("versetjour", exist_ok=True)
-        
-        # Sauvegarde avec un nom unique
-        now = datetime.now()
-        formatted_time = now.strftime("%Y%m%d%H%M")
-        output_path = f"versetjour/versetdu_{formatted_time}.mp3"
-        normalized_audio.export(output_path, format="mp3", bitrate="192k")
-        
-        return output_path
+        return verset, formatted_date
         
     except Exception as e:
-        print(f"Erreur lors du traitement du verset du jour: {e}")
-        return None
+        print(f"Erreur lors de la récupération du verset du jour: {e}")
+        return None, None
 
 def main(script_filename):
     # Authentification pour la partie podcast
@@ -517,12 +491,37 @@ def main(script_filename):
             
             elif command[0] == "VERSET_DU_JOUR":
                 print("Génération du verset du jour...")
-                verset_file = traiter_verset_du_jour()
-                if verset_file and os.path.exists(verset_file):
-                    verset_audio = AudioSegment.from_mp3(verset_file)
-                    emission = emission + verset_audio
+                verset, formatted_date = traiter_verset_du_jour()
+                if verset:
+                    prompt_meditation = (
+                        f"Voici le verset du jour du {formatted_date} : {verset}\n"
+                        f"Maintenant fais une méditation de doctrine évangélique sur ce verset."
+                    )
+                    texte_meditation = animateur_radio(prompt_meditation)
+                    
+                    # Génération du fichier audio
+                    audio_file = generate_mp3_from_text(texte_meditation)
+                    
+                    # Normalisation du volume
+                    audio = AudioSegment.from_file(audio_file, format="mp3")
+                    normalized_audio = audio.apply_gain(-20 - audio.dBFS)
+                    
+                    # Création du dossier versetjour s'il n'existe pas
+                    os.makedirs("versetjour", exist_ok=True)
+                    
+                    # Sauvegarde avec un nom unique
+                    now = datetime.now()
+                    formatted_time = now.strftime("%Y%m%d%H%M")
+                    output_path = f"versetjour/versetdu_{formatted_time}.mp3"
+                    normalized_audio.export(output_path, format="mp3", bitrate="192k")
+                    
+                    if os.path.exists(output_path):
+                        verset_audio = AudioSegment.from_mp3(output_path)
+                        emission = emission + verset_audio
+                    else:
+                        print("Erreur: Impossible de générer le fichier audio du verset du jour")
                 else:
-                    print("Erreur: Impossible de générer le verset du jour")
+                    print("Erreur: Impossible de récupérer le verset du jour")
         
         # Exportation du fichier final
         emission.export("output.mp3", format="mp3")
