@@ -5,6 +5,9 @@
 START
 NEXT_PROMPT;Bienvenue sur Radio Pneuma en ce {DATE}. Je suis Henri, votre animateur pour cette nouvelle émission de 1h de louange chez vous.
 
+# Verset du jour et méditation
+VERSET_DU_JOUR
+
 # Première chanson avec ID spécifique
 PLAY_SONG;1;tr-1172
 NEXT_PROMPT;Nous venons d'écouter [1]. Un excellent choix pour commencer cette émission !

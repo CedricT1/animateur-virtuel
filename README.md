@@ -10,6 +10,7 @@ Un script Python qui génère automatiquement des émissions de radio personnali
 - Génération de bulletins d'information
 - Support multi-voix pour les dialogues
 - Système de scripts pour personnaliser le contenu des émissions
+- Verset du jour avec méditation biblique
 
 ## Structure du Projet
 
@@ -18,9 +19,10 @@ Un script Python qui génère automatiquement des émissions de radio personnali
 ├── data/
 │   ├── emissions/      # Dossier contenant les émissions générées
 │   └── configurations/ # Fichiers de configuration et scripts d'émission
-├── animateur.py        # Script principal
-├── requirements.txt    # Dépendances Python
-└── README.md          # Documentation
+├── versetjour/        # Dossier contenant les versets du jour générés
+├── animateur.py       # Script principal
+├── requirements.txt   # Dépendances Python
+└── README.md         # Documentation
 ```
 
 ## Installation
@@ -86,6 +88,9 @@ Les scripts d'émission doivent être placés dans le dossier `data/configuratio
   - `FICHIER` : Chemin vers le fichier texte contenant le dialogue
   - `VOIX` : Identifiant de la voix à utiliser (ex: "fr-FR-DeniseNeural")
 - `JOURNAL` : Insère le bulletin d'information
+- `VERSET_DU_JOUR` : Insère le verset du jour avec une méditation biblique
+  - Récupère automatiquement le verset du jour depuis bible.com
+  - Génère une méditation évangélique sur le verset
 - `INSERT; FICHIER` : Insère un fichier audio directement
   - `FICHIER` : Chemin vers le fichier audio à insérer
 - `END` : Marque la fin de l'émission
@@ -94,6 +99,7 @@ Exemple de script :
 ```
 START
 NEXT_PROMPT;Bienvenue sur Radio Pneuma
+VERSET_DU_JOUR
 PLAY_SONG;1;hasard
 NEXT_PROMPT;Nous venons d'écouter [1]
 INTERLOCUTEUR;annonces.txt;fr-FR-DeniseNeural
