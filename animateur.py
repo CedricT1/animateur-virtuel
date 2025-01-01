@@ -56,10 +56,6 @@ if hasattr(config, 'TTS_ENGINE') and config.TTS_ENGINE.lower() == "google":
         print("Edge TTS sera utilisé comme fallback.")
         config.TTS_ENGINE = "edge"
 
-# Date du jour
-today = date.today()
-formatted_date = today.strftime("%d.%m.%Y")
-
 # Fonction pour télécharger une chanson au hasard
 def chansonhasard(track="hasard", telechargement=True):
     try:
