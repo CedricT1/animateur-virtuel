@@ -18,6 +18,7 @@ import json
 import time
 from bs4 import BeautifulSoup
 from pathlib import Path
+import subprocess
 
 # Configuration IA
 client = OpenAI(
@@ -316,8 +317,24 @@ def traiter_journal():
         print(f"Erreur lors du traitement du bulletin: {e}")
         return None
 
+# Fonction pour appliquer un effet expander et normaliser le segment audio à -3 dBFS
+def apply_expander(audio_segment):
+    """Applique un effet expander via ffmpeg et normalise le résultat à -12 dBFS."""
+    temp_in = "temp_in.wav"
+    temp_out = "temp_out.wav"
+    audio_segment.export(temp_in, format="wav")
+    # Application de l'effet expander avec ffmpeg (paramètres ajustables: threshold=-30dB, ratio=2, attack=5, release=50)
+    cmd = f'ffmpeg -y -i {temp_in} -af "compand=points=-60/-90|-50/-70|-40/-50|-30/-30|0/0" {temp_out}'
+    subprocess.run(cmd, shell=True, check=True)
+    output_audio = AudioSegment.from_file(temp_out, format="wav")
+    # Normalisation du segment audio à -3 dBFS
+    normalized_audio = output_audio.apply_gain(-12 - output_audio.dBFS)
+    os.remove(temp_in)
+    os.remove(temp_out)
+    return normalized_audio
+
+# Fonction pour générer un nom de fichier unique basé sur la date et l'heure
 def generate_unique_filename():
-    """Génère un nom de fichier unique basé sur la date et l'heure"""
     now = datetime.now()
     return f"emission-{now.strftime('%d%m%y_%H%M')}.mp3"
 
@@ -405,7 +422,7 @@ def main(script_filename):
                 bulletin_file = traiter_journal()
                 if bulletin_file:
                     bulletin_segment = AudioSegment.from_file(bulletin_file)
-                    bulletin_segment = effects.compress_dynamic_range(bulletin_segment, threshold=-20, ratio=8, attack=5, release=50)
+                    bulletin_segment = apply_expander(bulletin_segment)
                     emission += bulletin_segment
                     # Nettoyage du fichier temporaire
                     try:
@@ -429,6 +446,7 @@ def main(script_filename):
                         print(f"Joue la chanson : {chanson['title']}")
                         chansons[song_id] = chanson  # Mise à jour de la chanson jouée
                         song_segment = AudioSegment.from_file("song.mp3")
+                        song_segment = song_segment.apply_gain(-15 - song_segment.dBFS)  # Normalisation à -18 dBFS
                         emission += song_segment
                 else:
                     print(f"Aucune chanson trouvée pour l'ID: {song_id}")
@@ -444,7 +462,8 @@ def main(script_filename):
                 print(f"REPONSE: {animateur}")
                 tts = generate_mp3_from_text(animateur)
                 audio_tts = AudioSegment.from_mp3(tts)
-                audio_tts = effects.compress_dynamic_range(audio_tts, threshold=-20, ratio=8, attack=5, release=50)
+                audio_tts = apply_expander(audio_tts)
+                
                 emission += audio_tts
             elif command[0] == "ADD_PODCAST":
                 podcast_file = obtenir_podcasts(config.PODCAST_IDS[command[1].strip()], params)
@@ -504,7 +523,7 @@ def main(script_filename):
                     
                     if os.path.exists(output_path):
                         verset_audio = AudioSegment.from_mp3(output_path)
-                        verset_audio = effects.compress_dynamic_range(verset_audio, threshold=-20, ratio=8, attack=5, release=50)
+                        verset_audio = apply_expander(verset_audio)
                         emission = emission + verset_audio
                     else:
                         print("Erreur: Impossible de générer le fichier audio du verset du jour")
@@ -512,7 +531,9 @@ def main(script_filename):
                     print("Erreur: Impossible de récupérer le verset du jour")
         
         # Exportation du fichier final avec normalisation
-        normalized_emission = emission.apply_gain(-20 - emission.dBFS)
+        #neutralisation de la normalisation
+        #normalized_emission = emission.apply_gain(-18 - emission.dBFS)
+        normalized_emission = emission
         normalized_emission.export("output.mp3", format="mp3")
         print("Émission générée : output.mp3")
 
