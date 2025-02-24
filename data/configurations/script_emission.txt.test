@@ -1,0 +1,6 @@
+# script_emission.txt
+START
+NEXT_PROMPT;Bienvenue sur Radio Pneuma
+VERSET_DU_JOUR
+PLAY_SONG;1;hasard
+END

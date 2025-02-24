@@ -9,7 +9,7 @@ import hashlib
 import re
 from datetime import datetime
 from openai import OpenAI
-from pydub import AudioSegment
+from pydub import AudioSegment, effects
 import asyncio
 import edge_tts
 import config
@@ -405,6 +405,7 @@ def main(script_filename):
                 bulletin_file = traiter_journal()
                 if bulletin_file:
                     bulletin_segment = AudioSegment.from_file(bulletin_file)
+                    bulletin_segment = effects.compress_dynamic_range(bulletin_segment, threshold=-20, ratio=8, attack=5, release=50)
                     emission += bulletin_segment
                     # Nettoyage du fichier temporaire
                     try:
@@ -442,7 +443,9 @@ def main(script_filename):
                 animateur = animateur_radio(prompt)
                 print(f"REPONSE: {animateur}")
                 tts = generate_mp3_from_text(animateur)
-                emission += AudioSegment.from_mp3(tts)
+                audio_tts = AudioSegment.from_mp3(tts)
+                audio_tts = effects.compress_dynamic_range(audio_tts, threshold=-20, ratio=8, attack=5, release=50)
+                emission += audio_tts
             elif command[0] == "ADD_PODCAST":
                 podcast_file = obtenir_podcasts(config.PODCAST_IDS[command[1].strip()], params)
                 if podcast_file:
@@ -501,6 +504,7 @@ def main(script_filename):
                     
                     if os.path.exists(output_path):
                         verset_audio = AudioSegment.from_mp3(output_path)
+                        verset_audio = effects.compress_dynamic_range(verset_audio, threshold=-20, ratio=8, attack=5, release=50)
                         emission = emission + verset_audio
                     else:
                         print("Erreur: Impossible de générer le fichier audio du verset du jour")
