@@ -1,0 +1,25 @@
+# script_emission.txt
+START
+NEXT_PROMPT;Emission 1h de louange chez vous du {DATE}, tu es Albert London l'animateur 1h de louange chez vous l'émission matinale que vous retrouvez tous les matins. sur radio Pneuma. Tu es bref et concis. Annonce la première chanson qui est [1].
+PLAY_SONG; 1;hasard
+NEXT_PROMPT;annonce que nous venons d'écouter [1] Maintenant tu passes le micro à Fabrice qui va nous présenter le journal.
+JOURNAL;
+PLAY_SONG; 3;hasard
+NEXT_PROMPT; Remercie Fabrice pour le journal, et annonce que nous venons d'écouter [3] après la prochaine chanson je vous lirai et ferai un petit partage du verset du jour (n'invente pas un verset du jour tu vas le recevoir d'un script à la prochaine inférence). Mais avant écoutons [4]
+PLAY_SONG;  4;hasard
+# Verset du jour et méditation
+VERSET_DU_JOUR
+PLAY_SONG; 5;hasard
+NEXT_PROMPT; Annonce que nous venons d'écouter [5] et maintenant écoutons [6] 
+PLAY_SONG; 6;hasard
+PLAY_SONG; 7;hasard
+NEXT_PROMPT; Annonce que nous venons d'écouter [7] Maintenant nous allons écouter Patrice Moreno de Momentum qui va nous faire le starter du jour
+ADD_PODCAST;last
+NEXT_PROMPT; merci Patrice, ça fait du bien de ce faire booster de ci bon matin. Maintenant écoutons la chanson [8]
+PLAY_SONG; 8;hasard
+PLAY_SONG; 9;hasard
+NEXT_PROMPT; Annonce que nous venons d'écouter [9] et maintenant écoutons [10]
+PLAY_SONG; 10;hasard
+NEXT_PROMPT; Nous venons d'écouter [10] nous sommes a la fin, annonce pas de notre matinale, on se retrouve demain matin et on se quitte sur  [11] .
+PLAY_SONG; 11;hasard
+END
